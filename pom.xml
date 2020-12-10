@@ -21,7 +21,7 @@
   
   <groupId>com.symphony.oss</groupId>
   <artifactId>oss-parent-pom</artifactId>
-		<version>0.2.3-SNAPSHOT</version>
+		<version>0.4.6-SNAPSHOT</version>
   <packaging>pom</packaging>
   
   <name>oss-home</name>
@@ -82,9 +82,9 @@
 
     <aws.java.sdk.version>1.11.774</aws.java.sdk.version>
     
-    <guava.version>29.0-jre</guava.version>
+    <guava.version>30.0-jre</guava.version>
 
-    <jetty.version>9.4.19.v20190610</jetty.version>
+    <jetty.version>9.4.35.v20201120</jetty.version>
     <mortbay.alpm.version>8.1.11.v20170118</mortbay.alpm.version>
     
     <jackson.version>2.11.0</jackson.version>
@@ -98,11 +98,11 @@
     <bcpkix.version>1.65</bcpkix.version>
     <bcprov.version>1.65.01</bcprov.version>
 
-    <junit.version>4.12</junit.version>
+    <junit.version>4.13.1</junit.version>
 
     <tycho.version>1.0.0</tycho.version>
     
-    <checker.framework.version>2.3.0</checker.framework.version>
+    <checker.framework.version>3.7.0</checker.framework.version>
     <jjwt.version>0.11.0</jjwt.version>
   </properties>
 
@@ -498,24 +498,6 @@
             </execution>
           </executions>
         </plugin>
-        
-        <!-- <plugin>
-          <groupId>com.github.spotbugs</groupId>
-          <artifactId>spotbugs-maven-plugin</artifactId>
-          <version>4.0.0</version>
-          <configuration>
-            <effort>Max</effort>
-            <threshold>Low</threshold>
-            <xmlOutput>true</xmlOutput>
-          </configuration>
-          <executions>
-            <execution>
-              <goals>
-                <goal>check</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin> -->
       </plugins>
   
   </build>
@@ -636,7 +618,7 @@
       <dependency>
           <groupId>org.apache.httpcomponents</groupId>
           <artifactId>httpclient</artifactId>
-          <version>4.5.12</version>
+          <version>4.5.13</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
@@ -714,13 +696,25 @@
         <version>${bcprov.version}</version>
       </dependency>
 
-      <!-- Annotations from the Checker Framework: nullness, interning, locking, -->
-      <dependency>
+      <!-- Annotations from the Checker Framework: nullness, interning, locking, ... -->
+	    <dependency>
+	      <groupId>org.checkerframework</groupId>
+	      <artifactId>checker-qual</artifactId>
+	      <version>${checker.framework.version}</version>
+	    </dependency>
+	    <!-- If using JDK 8, add the following additional dependency. -->
+	    <dependency>
+	      <groupId>com.google.errorprone</groupId>
+	      <artifactId>javac</artifactId>
+	      <version>9+181-r4173-1</version>
+	    </dependency>
+    
+      <!-- <dependency>
         <groupId>org.checkerframework</groupId>
         <artifactId>checker-qual</artifactId>
         <version>${checker.framework.version}</version>
       </dependency>
-      <!--  Use checker-qual7 if targeting Java 7 -->
+       Use checker-qual7 if targeting Java 7
       <dependency>
         <groupId>org.checkerframework</groupId>
         <artifactId>checker-qual7</artifactId>
@@ -735,7 +729,7 @@
         <groupId>org.checkerframework</groupId>
         <artifactId>jdk8</artifactId>
         <version>${checker.framework.version}</version>
-      </dependency>
+      </dependency> -->
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
@@ -750,13 +744,8 @@
 			  <version>1.0</version>
 			  <optional>true</optional>
 			</dependency>
-			<dependency>
-			  <groupId>com.github.spotbugs</groupId>
-			  <artifactId>spotbugs-annotations</artifactId>
-			  <version>4.0.4</version>
-			  <optional>true</optional>
-			</dependency>
 	    <dependency>
+	      <!-- This artefact is released under the Apache 2.0 license -->
 	      <groupId>com.google.code.findbugs</groupId>
 	      <artifactId>jsr305</artifactId>
 	      <version>3.0.2</version>
@@ -783,6 +772,7 @@
     </dependency>
     
     <dependency>
+      <!-- This artefact is released under the Apache 2.0 license -->
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
     </dependency>
@@ -1089,6 +1079,40 @@
           </plugins>
         </build>
       </profile>
+   
+   <profile>
+    <id>snyk</id>
+    <build>
+      <plugins>
+        <plugin>
+	        <groupId>io.snyk</groupId>
+	        <artifactId>snyk-maven-plugin</artifactId>
+	        <version>1.2.8</version>
+	        <executions>
+            <execution>
+              <id>snyk-test</id>
+              <phase>test</phase>
+              <goals>
+                  <goal>test</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>snyk-monitor</id>
+              <phase>install</phase>
+              <goals>
+                  <goal>monitor</goal>
+              </goals>
+            </execution>
+	        </executions>
+	        <configuration>
+	            <apiToken>${snyk.api.token}</apiToken>
+	            <failOnSeverity>medium</failOnSeverity>
+	            <org>${snyk.org.id}</org>
+	        </configuration>
+        </plugin>
+      </plugins>
+    </build>
+   </profile>
 
    <profile>
      <id>checker</id>
@@ -1142,18 +1166,16 @@
      </build>
 
      <dependencies>
-       <dependency>
-          <groupId>org.checkerframework</groupId>
-          <artifactId>checker-qual</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.checkerframework</groupId>
-          <artifactId>checker</artifactId>
-        </dependency>
-        <dependency>
-          <groupId>org.checkerframework</groupId>
-          <artifactId>jdk8</artifactId>
-        </dependency>
+	    <!-- Annotations from the Checker Framework: nullness, interning, locking, ... -->
+	    <dependency>
+	      <groupId>org.checkerframework</groupId>
+	      <artifactId>checker-qual</artifactId>
+	    </dependency>
+	    <!-- If using JDK 8, add the following additional dependency. -->
+	    <dependency>
+	      <groupId>com.google.errorprone</groupId>
+	      <artifactId>javac</artifactId>
+	    </dependency>
      </dependencies>
    </profile>
   </profiles>
